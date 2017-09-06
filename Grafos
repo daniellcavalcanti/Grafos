@@ -1,0 +1,471 @@
+class Aresta():
+    def __init__(self, Ele_Ini, Ele_Fim, peso=0):
+        self.Ele_Ini = Ele_Ini
+        self.Ele_Fim = Ele_Fim
+        self.peso = peso
+
+    def getEle_Ini(self):
+        return self.Ele_Ini
+
+    def getEle_Fim(self):
+        return self.Ele_Fim
+
+    def setpeso(self, peso):
+        self.peso = peso
+
+    def getPeso(self):
+        return self.peso
+
+    def setEle_Ini(self, vertice):
+        self.Ele_Ini = vertice
+
+    def setEle_Fim(self, vertice):
+        self.Ele_Fim = vertice
+
+    def __str__(self):
+        return "A(%s----%i---->%s)" % (self.Ele_Ini.getId(), self.peso, self.Ele_Fim.getId())
+
+
+class Vertice():
+    def __init__(self, id):
+        self.id = id
+        self.estimativa = 999999
+        self.input = 0
+        self.output = 0
+        self.visitado = False
+        self.predecessor = []
+
+    def setVisitado(self, valor):
+        self.visitado = valor
+
+    def getVisitado(self):
+        return self.visitado
+
+    def setId(self, id):
+        self.id = id
+
+    def getId(self):
+        return self.id
+
+    def setImput(self, inp):
+        self.input = inp
+
+    def setOutput(self, out):
+        self.output = out
+
+    def setEstimativa(self, estimativa):
+        self.estimativa = estimativa
+
+    def getEstimativa(self):
+        return self.estimativa
+
+    def __str__(self):
+        return (" Vértice  : %s \n Estimativa: %i \n Tempo(%i\%i): " % (
+            self.id, self.estimativa, self.input, self.output))  
+
+    def __lt__(self, v):
+        return self.estimativa < v.estimativa
+
+    def __eq__(self, v):
+        return self.estimativa == v.estimativa
+
+    def __eq__(self, v):
+        return self.id == v.id
+
+    def __gt__(self, v):
+        return self.estimativa > v.estimativa
+
+
+class Grafo:
+    def __init__(self, direcionado):
+        self.lista_Vertices = []
+        self.lista_Arestas = []
+        self.direcionado = direcionado
+        self.tempo = 0
+        self.lista_Adj=[]
+    def Incluir_Vertice(self, Rotulo):
+
+        self.lista_Vertices.append(Vertice(Rotulo))
+
+    def busca_Aresta(self, u, v): 
+        for w in self.lista_Arestas:
+            Ele_Ini = w.getEle_Ini()
+            Ele_Fim = w.getEle_Fim()
+            if Ele_Ini.getId() == u.getId() and Ele_Fim.getId() == v.getId():
+                return w
+
+    def busca_Vertice(self, Rotulo):  
+        for i in self.lista_Vertices:
+            if Rotulo == i.getId():
+                return i
+        else:
+            return None
+
+    def Incluir_Aresta(self, Ele_Ini, Ele_Fim, peso):  
+        Ele_Ini_aux = self.busca_Vertice(Ele_Ini)
+        Ele_Fim_aux = self.busca_Vertice(Ele_Fim)
+        if (Ele_Ini_aux is not None) and (Ele_Fim_aux is not None):
+            self.lista_Arestas.append(Aresta(Ele_Ini_aux, Ele_Fim_aux, peso))
+        else:
+            print("Um dos vértices ou ambos são invalidos!")
+
+        if self.direcionado == False:
+            self.lista_Arestas.append(Aresta(Ele_Fim_aux, Ele_Ini_aux, peso))  
+
+    def Vazio(self):
+        if len(self.lista_Vertices) == 0:
+            return True
+        else:
+            return False
+
+    def Buscar_Adjacente(self, u): 
+        for i in range(len(self.lista_Arestas)):
+            Ele_Ini = self.lista_Arestas[i].getEle_Ini()
+            Ele_Fim = self.lista_Arestas[i].getEle_Fim()
+            if (u.getId() == Ele_Ini.getId()) and (Ele_Fim.getVisitado() == False):
+                Ele_Fim.setVisitado(True)  
+                return Ele_Fim
+        else:
+            return None
+
+    def Buscar_Adjacente1(self, u):  
+        for i in range(len(self.lista_Arestas)):
+            Ele_Ini = self.lista_Arestas[i].getEle_Ini()
+            Ele_Fim = self.lista_Arestas[i].getEle_Fim()
+            if (u.getId() == Ele_Ini.getId()) and (Ele_Fim.getVisitado() == False):
+                Ele_Fim.setVisitado(True)  
+                self.lista_Adj.append(Ele_Fim.getId())
+
+        else:
+            return self.lista_Adj
+        return self.lista_Adj
+    
+
+    def Busca_em_Profundidade(self):
+        self.tempo = 0
+        for v in self.lista_Vertices:
+            v.setVisitado(False)
+            v.input = 0
+            v.output = 0
+        for v in self.lista_Vertices:
+            if not v.getVisitado():
+                self.visita(v)
+
+    def visita(self, u):
+        print("Visitando o vertice: %s" % u.getId())
+        u.setVisitado(True)
+        self.tempo += 1
+        u.setImput(self.tempo)
+        v = self.Buscar_Adjacente(u)  
+        while v is not None:
+            v.predecessor.append(u.getId())
+            self.visita(v)
+            v = self.Buscar_Adjacente(u)
+
+        self.tempo += 1
+        u.setOutput(self.tempo)
+        print("Voltando para: ", u.predecessor)
+
+    
+
+    def inicializa_Fonte(self, fonte):  
+        for v in self.lista_Vertices:
+            v.setEstimativa(99999)
+            v.setVisitado(False)
+        fonte.setVisitado(True)
+        fonte.setEstimativa(0)
+
+
+
+    def Busca_em_Largura(self, Rotulo):
+        fonte = self.busca_Vertice(Rotulo)
+        if fonte is None:
+            return "Vértice Nulo!"
+        self.inicializa_Fonte(fonte)
+        lista = [fonte]
+        lista2=[]
+        while 0 != len(lista):
+            u = lista[0]
+            v = self.Buscar_Adjacente(u)  
+            if v is None:
+                lista.pop(0)  
+                lista2.append(u.getId())
+            else:
+                self.tempo += 1
+                v.setImput(self.tempo)
+                v.predecessor.append(u.getId())
+                v.setVisitado(True)
+                lista.append(v)
+            u.setVisitado(True)
+        return lista2
+    def imprime_Grafo_com_Ele_Fim(self, Ele_Ini, Ele_Fim):
+        Ele_Fim_Aux = self.busca_Vertice(Ele_Fim)
+        if len(Ele_Fim_Aux.predecessor) == 0:
+            print("Não há caminho!")
+        else:
+            print(Ele_Fim)
+            self.imprime_Grafo(Ele_Ini, Ele_Fim)
+
+    def imprime_Grafo(self, Ele_Ini, Ele_Fim):
+        if Ele_Ini == Ele_Fim:
+            print("Fim!")
+        else:
+            Ele_Fim_Aux = self.busca_Vertice(Ele_Fim)
+            if len(Ele_Fim_Aux.predecessor) == 0:
+                print("Não há caminho!")
+            else:
+                print(Ele_Fim_Aux.predecessor[0])
+                self.imprime_Grafo(Ele_Ini, Ele_Fim_Aux.predecessor[0])
+
+    
+
+    def relaxa_Vertice(self, u, v, w):
+        if v.getEstimativa() > (u.getEstimativa() + w.getPeso()):
+            v.setEstimativa(u.getEstimativa() + w.getPeso())
+            v.predecessor.append(u.getId()) 
+
+    def Dijkstra(self, Ele_Ini):
+        fonte = self.busca_Vertice(Ele_Ini)
+        if fonte is None:
+            return "Vértice nulo!"
+
+        self.inicializa_Fonte(fonte)
+        lista = []
+        resposta = []  
+        for i in self.lista_Vertices:
+            lista.append(i)
+        while len(lista) != 0:
+            lista.sort()  
+            u = lista[0]
+            v = self.Buscar_Adjacente(u)
+            if v is None:
+                for i in self.lista_Vertices:  
+                    i.setVisitado(
+                        False)  
+                self.tempo += 1
+                u.setImput(self.tempo)  
+                resposta.append(lista[0])
+                lista.pop(0)  
+            else:
+                w = self.busca_Aresta(u, v)
+                if w is not None:
+                    self.relaxa_Vertice(u, v, w)
+
+        print("Estimativas: ")
+        for i in resposta:
+            print(i)  
+    
+    def BellManFord2(self,Ele_Ini):
+        acc = 0
+        fonte = self.busca_Vertice(Ele_Ini)
+        self.inicializa_Fonte(fonte)
+        for i in range(1,len(self.lista_Vertices)-1):
+            for w in self.lista_Arestas:
+                u = w.getEle_Ini()
+                v = w.getEle_Fim()
+                if u.getEstimativa()+w.getPeso() < v.getEstimativa():
+                    v.predecessor= [u.getId()]
+                    v.setEstimativa(u.getEstimativa()+w.getPeso())
+
+        for w in self.lista_Arestas:
+            u = w.getEle_Ini()
+            v = w.getEle_Fim()
+            if u.getEstimativa() + w.getPeso() < v.getEstimativa():
+                acc=acc+1
+        if acc>0:
+            return True
+        else:
+            return False
+    
+    def Bellman_Ford(self, Ele_Ini):
+        fonte = self.busca_Vertice(Ele_Ini)
+        self.inicializa_Fonte(fonte)
+        for i in range(1,len(self.lista_Vertices)-1):
+            for w in self.lista_Arestas:
+                u = w.getEle_Ini()
+                v = w.getEle_Fim()
+                #self.relaxa_Vertice(u, v, w)
+                if u.getEstimativa() + w.getPeso() < v.getEstimativa():
+                    print(u.getEstimativa(),w.getPeso(), v.getEstimativa())
+                    v.setEstimativa(u.getEstimativa() + w.getPeso())
+                    v.predecessor=u.getId()  
+
+        for w in self.lista_Arestas:
+            u = w.getEle_Ini()
+            v = w.getEle_Fim()
+            if u.getEstimativa() + w.getPeso()<v.getEstimativa() :
+                return False  
+            else:
+                return True  
+
+   
+    def Arvore_Minima(self, Ele_Ini):  
+        fonte = self.busca_Vertice(Ele_Ini)
+        if fonte is None:
+            return "Vertice Nulo!"
+
+        self.inicializa_Fonte(fonte)
+        lista = []
+        for i in self.lista_Vertices:
+            lista.append(i)
+        lista.sort()
+        while len(lista) != 0:
+           
+            u = lista[0]
+            v = self.Buscar_Adjacente(u)
+
+            if v is None:
+                for i in lista:  
+                    i.setVisitado(
+                        False) 
+                    
+                lista.sort()
+                self.tempo += 1
+                u.setImput(self.tempo)
+                lista.remove(u)
+            else:
+                w = self.busca_Aresta(u, v)
+                if lista.count(v) > 0:
+                    if v.getEstimativa() > w.getPeso():
+                        v.predecessor = [u.getId()]
+                        v.setEstimativa(w.getPeso())
+
+        for u in self.lista_Vertices:
+            if len(u.predecessor) > 0:
+                print(u.predecessor, "------", u.getId())
+        self.lista_Vertices.sort(key=lambda u: u.input, reverse=False)
+        for i in self.lista_Vertices:
+            print(i)
+
+    
+    def Verifica_Ciclico(self):
+        if (len(self.lista_Arestas) > len(self.lista_Vertices) - 1):
+            print("Grafo Cíclico por apresentar um número de arestas maior que o de vértices!" % (
+            len(self.lista_Arestas), len(self.lista_Vertices)))
+        else:
+            print("Grafo Acíclico!")
+
+
+    def grafo_Transposto(self):  
+        for i in range(len(self.lista_Arestas)):
+            Ele_Ini = self.lista_Arestas[0].getEle_Ini()
+            Ele_Fim = self.lista_Arestas[0].getEle_Fim()
+            self.lista_Arestas.pop(0)
+            self.lista_Arestas.append(Aresta(Ele_Fim, Ele_Ini, 0))
+
+    def Componentes_Fortes(self):
+        print("Busca em Profundidade:")
+        self.Busca_em_Profundidade()
+        self.lista_Vertices.sort(key=lambda u: u.output, reverse=True) 
+        for w in self.lista_Arestas:
+            print(w)
+        self.grafo_Transposto()
+        print("Grafo Transposto:")
+        for w in self.lista_Arestas:
+            print(w)
+        for i in self.lista_Vertices:
+            i.input = 0
+            i.output = 0
+            i.setVisitado(False)
+        print("\nComponetes fortemente Conexos:\n")
+        for i in self.lista_Vertices:
+            if not i.getVisitado():
+                self.visita(i)
+
+ 
+    def cria_Euleriano(self):
+        pass
+
+    def Verifica_Euler(self):
+        for u in self.lista_Vertices:
+            if self.Grau(u) % 2 is not 0:
+                return False
+        return True
+
+    def Grau(self, u):
+        Grau = 0
+        for w in self.lista_Arestas:
+            if u == w.getEle_Ini():
+                Grau += 1
+        return Grau
+
+    
+    def Ponto(self, u):
+        for v in self.lista_Vertices:
+            v.setVisitado(False)
+
+        u.setVisitado(True)
+        self.visita(self.Buscar_Adjacente(u))
+        for v in self.lista_Vertices:
+            if v.getVisitado() == False:
+                return True
+
+    def Articulacao(self):
+        art = []
+        for u in self.lista_Vertices:
+            if self.Ponto(u):
+                art.append(u.getId())
+        print("Pontos de Articulação:", art)
+
+'''
+    def Dijkstra1(self, Ele_Ini, Ele_Fim):
+        fonte = self.busca_Vertice(Ele_Ini)
+		Ele_Fim_Aux = self.busca_Vertice(Ele_Fim)
+        if fonte is None:
+            return "Vértice nulo!"
+        self.inicializa_Fonte(fonte)
+        lista = []
+        resposta = []  
+        for i in self.lista_Vertices:
+            lista.append(i)
+		while  
+        while len(lista) != 0:
+            lista.sort()  
+            u = lista[0]
+            v = self.Buscar_Adjacente(u)
+            if v is None:
+                for i in self.lista_Vertices:  
+                    i.setVisitado(
+                        False)  
+                self.tempo += 1
+                u.setImput(self.tempo)  
+                resposta.append(lista[0])
+                lista.pop(0)  
+            else:
+                w = self.busca_Aresta(u, v)
+                if w is not None:
+                    self.relaxa_Vertice(u, v, w)
+
+        print("Estimativas: ")
+        for i in resposta:
+            print(i)  	
+'''
+a= Grafo(False)
+a.Incluir_Vertice('a')
+a.Incluir_Vertice('b')
+a.Incluir_Vertice('c')
+a.Incluir_Vertice('d')
+a.Incluir_Vertice('e')
+a.Incluir_Vertice('f')
+
+a.Incluir_Aresta('a','b',0)
+a.Incluir_Aresta('a','d',0)
+a.Incluir_Aresta('b','c',0)
+a.Incluir_Aresta('a','c',0)
+a.Incluir_Aresta('a','e',0)
+a.Incluir_Aresta('b','e',0)
+a.Incluir_Aresta('d','e',0)
+a.Incluir_Aresta('b','d',0)
+a.Incluir_Aresta('d','f',0)
+a.Incluir_Aresta('f','e',0)
+#print(a.busca_Aresta(Vertice('a'),Vertice('e')))
+#print(a.Buscar_Adjacente1(Vertice('a')))
+#print(a.Busca_em_Largura('a'))
+#print(a.Busca_em_Profundidade())
+#print(a.Componentes_Fortes())
+#print(a.Verifica_Ciclico())
+#print(a.Articulacao())
+#print(a.Verifica_Euler())
+#print(a.Dijkstra('a'))
+#print(a.Arvore_Minima('a'))
+#print(a.Verifica_Euler())
